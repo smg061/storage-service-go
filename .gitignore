@@ -1,2 +1,7 @@
 secrets.json
 shared/tls
+.env
+*.env
+
+.env*
+
