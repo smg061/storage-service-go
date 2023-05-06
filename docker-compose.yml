@@ -1,0 +1,56 @@
+version: "3.9"
+services:
+  video_service:
+    container_name: video_service_container
+    environment:
+      - ENV=production
+      - DBHOST=mongodb://db:27017
+      - PORT=8080
+      - STORAGE_SERVICE_URL=http://docker.host.internal
+    tty: true
+    build: ./video-service/
+    env_file:
+      - ./video-service/.env.production
+    ports:
+      - 8080:8080
+    restart: on-failure
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    networks:
+      - learning
+  storage_service:
+      container_name: storage_service_container
+      environment:
+        - ENV=production
+        - GCLOUD_STORAGE_SECRETS=./build/secrets.json
+        - BUCKETNAME=video-service-storage
+        - PORT=5001
+      tty: true
+      build: ./storage-service/
+      env_file:
+        - ./storage-service/.env
+      ports:
+        - 5001:5001
+      restart: on-failure
+      volumes:
+        - .:/app
+      depends_on:
+        - db
+      networks:
+        - learning
+  db:
+    image: mongo
+    container_name: db
+    ports:
+      - "4000:27017"
+    restart: always
+    networks:
+     - learning
+
+
+# Networks to be created to facilitate communication between containers
+networks:
+  learning:
+    driver: bridge
